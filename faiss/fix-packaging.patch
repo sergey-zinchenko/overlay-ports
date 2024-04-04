@@ -1,0 +1,75 @@
+diff --git a/cmake/faiss-config.cmake.in b/cmake/faiss-config.cmake.in
+index 43ea9d4c..f0e01a4a 100644
+--- a/cmake/faiss-config.cmake.in
++++ b/cmake/faiss-config.cmake.in
+@@ -4,4 +4,8 @@
+ # This source code is licensed under the BSD-style license found in the
+ # LICENSE file in the root directory of this source tree.
+
++include(CMakeFindDependencyMacro)
++find_dependency(OpenMP REQUIRED)
++find_dependency(BLAS REQUIRED)
++find_dependency(LAPACK REQUIRED)
+ include("${CMAKE_CURRENT_LIST_DIR}/faiss-targets.cmake")
+diff --git a/faiss/CMakeLists.txt b/faiss/CMakeLists.txt
+index 33e18495..83f5a8ef 100644
+--- a/faiss/CMakeLists.txt
++++ b/faiss/CMakeLists.txt
+@@ -303,19 +303,19 @@ target_link_libraries(faiss_avx2 PRIVATE OpenMP::OpenMP_CXX)
+ target_link_libraries(faiss_avx512 PRIVATE OpenMP::OpenMP_CXX)
+
+ find_package(MKL)
+-if(MKL_FOUND)
++if(0)
+   target_link_libraries(faiss PRIVATE ${MKL_LIBRARIES})
+   target_link_libraries(faiss_avx2 PRIVATE ${MKL_LIBRARIES})
+   target_link_libraries(faiss_avx512 PRIVATE ${MKL_LIBRARIES})
+ else()
+   find_package(BLAS REQUIRED)
+-  target_link_libraries(faiss PRIVATE ${BLAS_LIBRARIES})
+-  target_link_libraries(faiss_avx2 PRIVATE ${BLAS_LIBRARIES})
++  target_link_libraries(faiss PRIVATE BLAS::BLAS)
++  target_link_libraries(faiss_avx2 PRIVATE BLAS::BLAS)
+   target_link_libraries(faiss_avx512 PRIVATE ${BLAS_LIBRARIES})
+
+   find_package(LAPACK REQUIRED)
+-  target_link_libraries(faiss PRIVATE ${LAPACK_LIBRARIES})
+-  target_link_libraries(faiss_avx2 PRIVATE ${LAPACK_LIBRARIES})
++  target_link_libraries(faiss PRIVATE LAPACK::LAPACK)
++  target_link_libraries(faiss_avx2 PRIVATE LAPACK::LAPACK)
+   target_link_libraries(faiss_avx512 PRIVATE ${LAPACK_LIBRARIES})
+ endif()
+
+@@ -329,15 +329,19 @@ install(TARGETS faiss
+ if(FAISS_OPT_LEVEL STREQUAL "avx2")
+   install(TARGETS faiss_avx2
+     EXPORT faiss-targets
++    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+   )
+ endif()
+ if(FAISS_OPT_LEVEL STREQUAL "avx512")
+   install(TARGETS faiss_avx2 faiss_avx512
+     EXPORT faiss-targets
++    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+   )
+ endif()
+
+diff --git a/faiss/utils/distances_fused/simdlib_based.cpp b/faiss/utils/distances_fused/simdlib_based.cpp
+index 309fb721..be061ac2 100644
+--- a/faiss/utils/distances_fused/simdlib_based.cpp
++++ b/faiss/utils/distances_fused/simdlib_based.cpp
+@@ -260,7 +260,7 @@ void exhaustive_L2sqr_fused_cmax(
+     const size_t nx_p = (nx / NX_POINTS_PER_LOOP) * NX_POINTS_PER_LOOP;
+     // the main loop.
+ #pragma omp parallel for schedule(dynamic)
+-    for (size_t i = 0; i < nx_p; i += NX_POINTS_PER_LOOP) {
++    for (auto i = 0; i < nx_p; i += NX_POINTS_PER_LOOP) {
+         kernel<DIM, NX_POINTS_PER_LOOP, NY_POINTS_PER_LOOP>(
+                 x, y, y_transposed.data(), ny, res, y_norms, i);
+     }

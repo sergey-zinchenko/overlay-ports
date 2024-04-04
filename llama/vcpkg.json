@@ -1,0 +1,30 @@
+{
+  "name": "llama",
+  "version-string": "b2589",
+  "description": "Inference of Meta's LLaMA model (and others) in pure C/C++",
+  "homepage": "https://github.com/ggerganov/llama.cpp",
+  "license": "MIT",
+  "dependencies": [
+    {
+      "name": "vcpkg-tool-meson",
+      "host": true
+    },
+    "openblas",
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ],
+  "default-features": [
+    "openblass"
+  ],
+  "features": {
+    "openblass": {
+      "description": "Use OpenBLAS"
+    }
+  }
+}
