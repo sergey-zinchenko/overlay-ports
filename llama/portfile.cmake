@@ -8,8 +8,9 @@ vcpkg_from_github(OUT_SOURCE_PATH SOURCE_PATH
 )
 
 vcpkg_find_acquire_program(PKGCONFIG)
-get_filename_component(PKGCONFIG_DIR "${PKGCONFIG}" DIRECTORY )
+get_filename_component(PKGCONFIG_DIR "${PKGCONFIG}" DIRECTORY)
 vcpkg_add_to_path("${PKGCONFIG_DIR}")
+vcpkg_find_acquire_program(GIT)
 get_filename_component(GIT_PATH ${GIT} DIRECTORY)
 vcpkg_add_to_path(PREPEND "${GIT_PATH}")
 

@@ -65,7 +65,7 @@ index 1d840e5f..7848e7da 100644
 +    )
 +endforeach()
 diff --git a/scripts/LlamaConfig.cmake.in b/scripts/LlamaConfig.cmake.in
-index f842c713..bb93ec6d 100644
+index f842c713..b44582bf 100644
 --- a/scripts/LlamaConfig.cmake.in
 +++ b/scripts/LlamaConfig.cmake.in
 @@ -55,6 +55,10 @@ find_library(llama_LIBRARY llama
@@ -87,8 +87,8 @@ index f842c713..bb93ec6d 100644
 +check_required_components(llama)
 +
 +set(_common_link_deps "llama" "")
-+add_library(common UNKNOWN IMPORTED)
-+set_target_properties(common
++add_library(llama_common UNKNOWN IMPORTED)
++set_target_properties(llama_common
 +        PROPERTIES
 +        INTERFACE_INCLUDE_DIRECTORIES "${LLAMA_INCLUDE_DIR}"
 +        INTERFACE_LINK_LIBRARIES "${_common_link_deps}"
@@ -98,4 +98,4 @@ index f842c713..bb93ec6d 100644
 +        INTERFACE_COMPILE_FEATURES cxx_std_11
 +        POSITION_INDEPENDENT_CODE ON )
 +
-+check_required_components(common)
++check_required_components(llama_common)
