@@ -5,7 +5,7 @@ index 43ea9d4c..f0e01a4a 100644
 @@ -4,4 +4,8 @@
  # This source code is licensed under the BSD-style license found in the
  # LICENSE file in the root directory of this source tree.
-
+ 
 +include(CMakeFindDependencyMacro)
 +find_dependency(OpenMP REQUIRED)
 +find_dependency(BLAS REQUIRED)
@@ -17,7 +17,7 @@ index 33e18495..83f5a8ef 100644
 +++ b/faiss/CMakeLists.txt
 @@ -303,19 +303,19 @@ target_link_libraries(faiss_avx2 PRIVATE OpenMP::OpenMP_CXX)
  target_link_libraries(faiss_avx512 PRIVATE OpenMP::OpenMP_CXX)
-
+ 
  find_package(MKL)
 -if(MKL_FOUND)
 +if(0)
@@ -31,7 +31,7 @@ index 33e18495..83f5a8ef 100644
 +  target_link_libraries(faiss PRIVATE BLAS::BLAS)
 +  target_link_libraries(faiss_avx2 PRIVATE BLAS::BLAS)
    target_link_libraries(faiss_avx512 PRIVATE ${BLAS_LIBRARIES})
-
+ 
    find_package(LAPACK REQUIRED)
 -  target_link_libraries(faiss PRIVATE ${LAPACK_LIBRARIES})
 -  target_link_libraries(faiss_avx2 PRIVATE ${LAPACK_LIBRARIES})
@@ -39,7 +39,7 @@ index 33e18495..83f5a8ef 100644
 +  target_link_libraries(faiss_avx2 PRIVATE LAPACK::LAPACK)
    target_link_libraries(faiss_avx512 PRIVATE ${LAPACK_LIBRARIES})
  endif()
-
+ 
 @@ -329,15 +329,19 @@ install(TARGETS faiss
  if(FAISS_OPT_LEVEL STREQUAL "avx2")
    install(TARGETS faiss_avx2
@@ -59,7 +59,7 @@ index 33e18495..83f5a8ef 100644
 +    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
    )
  endif()
-
+ 
 diff --git a/faiss/utils/distances_fused/simdlib_based.cpp b/faiss/utils/distances_fused/simdlib_based.cpp
 index 309fb721..be061ac2 100644
 --- a/faiss/utils/distances_fused/simdlib_based.cpp
