@@ -9,7 +9,6 @@
       "name": "vcpkg-tool-meson",
       "host": true
     },
-    "openblas",
     {
       "name": "vcpkg-cmake",
       "host": true
@@ -20,11 +19,14 @@
     }
   ],
   "default-features": [
-    "openblass"
+    "openblas"
   ],
   "features": {
-    "openblass": {
-      "description": "Use OpenBLAS"
+    "openblas": {
+      "description": "Use OpenBLAS",
+      "dependencies": [
+        "openblas"
+      ]
     }
   }
 }

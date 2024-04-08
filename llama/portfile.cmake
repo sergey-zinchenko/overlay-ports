@@ -17,7 +17,7 @@ vcpkg_add_to_path(PREPEND "${GIT_PATH}")
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
         FEATURES
-        openblass LLAMA_BLAS
+        openblas LLAMA_BLAS
 )
 
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
