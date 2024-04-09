@@ -19,7 +19,6 @@
     }
   ],
   "default-features": [
-    "openblas"
   ],
   "features": {
     "openblas": {
