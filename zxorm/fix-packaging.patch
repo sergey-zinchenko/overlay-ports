@@ -10,20 +10,6 @@ index 8b1914a..8442e8c 100644
        CACHE PATH ""
    )
  endif()
-diff --git a/include/zxorm/orm/connection.hpp b/include/zxorm/orm/connection.hpp
-index 9f00288..28da7c6 100644
---- a/include/zxorm/orm/connection.hpp
-+++ b/include/zxorm/orm/connection.hpp
-@@ -23,6 +23,9 @@
- #include <type_traits>
- #include <unordered_map>
- #include <utility>
-+#include <cstddef>
-+
-+#define ssize_t std::ptrdiff_t
- 
- namespace zxorm {
-     template <class... Table>
 diff --git a/include/zxorm/orm/expression.hpp b/include/zxorm/orm/expression.hpp
 index 857a230..5660d98 100644
 --- a/include/zxorm/orm/expression.hpp
