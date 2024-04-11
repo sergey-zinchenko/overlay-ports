@@ -1,0 +1,12 @@
+diff --git a/cmake/install-rules.cmake b/cmake/install-rules.cmake
+index 8b1914a..8442e8c 100644
+--- a/cmake/install-rules.cmake
++++ b/cmake/install-rules.cmake
+@@ -1,6 +1,6 @@
+ if(PROJECT_IS_TOP_LEVEL)
+   set(
+-      CMAKE_INSTALL_INCLUDEDIR "include/zxorm-${PROJECT_VERSION}"
++      CMAKE_INSTALL_INCLUDEDIR "include"
+       CACHE PATH ""
+   )
+ endif()
