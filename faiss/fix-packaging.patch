@@ -12,7 +12,7 @@ index 43ea9d4c..f0e01a4a 100644
 +find_dependency(LAPACK REQUIRED)
  include("${CMAKE_CURRENT_LIST_DIR}/faiss-targets.cmake")
 diff --git a/faiss/CMakeLists.txt b/faiss/CMakeLists.txt
-index 33e18495..8b656787 100644
+index 33e18495..09fef4c0 100644
 --- a/faiss/CMakeLists.txt
 +++ b/faiss/CMakeLists.txt
 @@ -231,12 +231,14 @@ set(FAISS_HEADERS ${FAISS_HEADERS} PARENT_SCOPE)
@@ -66,9 +66,9 @@ index 33e18495..8b656787 100644
 -  target_link_libraries(faiss_avx512 PRIVATE ${BLAS_LIBRARIES})
 +find_package(BLAS REQUIRED)
 +find_package(LAPACK REQUIRED)
-+target_link_libraries(faiss PRIVATE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${OpenMP_CXX_LIBRARIES} ${OpenMP_CXX_FLAGS})
-+target_link_libraries(faiss_avx2 PRIVATE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${OpenMP_CXX_LIBRARIES} ${OpenMP_CXX_FLAGS})
-+target_link_libraries(faiss_avx512 PRIVATE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${OpenMP_CXX_LIBRARIES} ${OpenMP_CXX_FLAGS})
++target_link_libraries(faiss PRIVATE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${OpenMP_CXX_FLAGS})
++target_link_libraries(faiss_avx2 PRIVATE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${OpenMP_CXX_FLAGS})
++target_link_libraries(faiss_avx512 PRIVATE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${OpenMP_CXX_FLAGS})
  
 -  find_package(LAPACK REQUIRED)
 -  target_link_libraries(faiss PRIVATE ${LAPACK_LIBRARIES})
