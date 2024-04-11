@@ -12,35 +12,73 @@ index 43ea9d4c..f0e01a4a 100644
 +find_dependency(LAPACK REQUIRED)
  include("${CMAKE_CURRENT_LIST_DIR}/faiss-targets.cmake")
 diff --git a/faiss/CMakeLists.txt b/faiss/CMakeLists.txt
-index 33e18495..83f5a8ef 100644
+index 33e18495..8b656787 100644
 --- a/faiss/CMakeLists.txt
 +++ b/faiss/CMakeLists.txt
-@@ -303,19 +303,19 @@ target_link_libraries(faiss_avx2 PRIVATE OpenMP::OpenMP_CXX)
- target_link_libraries(faiss_avx512 PRIVATE OpenMP::OpenMP_CXX)
+@@ -231,12 +231,14 @@ set(FAISS_HEADERS ${FAISS_HEADERS} PARENT_SCOPE)
  
- find_package(MKL)
--if(MKL_FOUND)
-+if(0)
-   target_link_libraries(faiss PRIVATE ${MKL_LIBRARIES})
-   target_link_libraries(faiss_avx2 PRIVATE ${MKL_LIBRARIES})
-   target_link_libraries(faiss_avx512 PRIVATE ${MKL_LIBRARIES})
+ add_library(faiss ${FAISS_SRC})
+ 
++find_package(OpenMP REQUIRED)
++
+ add_library(faiss_avx2 ${FAISS_SRC})
+ if(NOT FAISS_OPT_LEVEL STREQUAL "avx2" AND NOT FAISS_OPT_LEVEL STREQUAL "avx512")
+   set_target_properties(faiss_avx2 PROPERTIES EXCLUDE_FROM_ALL TRUE)
+ endif()
+-if(NOT WIN32)
+-  target_compile_options(faiss_avx2 PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-mavx2 -mfma -mf16c -mpopcnt>)
++if(NOT WIN32 OR MINGW)
++  target_compile_options(faiss_avx2 PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-mavx2 -mfma -mf16c -mpopcnt ${OpenMP_CXX_FLAGS}>)
  else()
-   find_package(BLAS REQUIRED)
+   # MSVC enables FMA with /arch:AVX2; no separate flags for F16C, POPCNT
+   # Ref. FMA (under /arch:AVX2): https://docs.microsoft.com/en-us/cpp/build/reference/arch-x64
+@@ -251,10 +253,10 @@ add_library(faiss_avx512 ${FAISS_SRC})
+ if(NOT FAISS_OPT_LEVEL STREQUAL "avx512")
+   set_target_properties(faiss_avx512 PROPERTIES EXCLUDE_FROM_ALL TRUE)
+ endif()
+-if(NOT WIN32)
++if(NOT WIN32 OR MINGW)
+   # All modern CPUs support F, CD, VL, DQ, BW extensions.
+   # Ref: https://en.wikipedia.org/wiki/AVX512
+-  target_compile_options(faiss_avx512 PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-mavx2 -mfma -mf16c -mavx512f -mavx512cd -mavx512vl -mavx512dq -mavx512bw -mpopcnt>)
++  target_compile_options(faiss_avx512 PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-mavx2 -mfma -mf16c -mavx512f -mavx512cd -mavx512vl -mavx512dq -mavx512bw -mpopcnt ${OpenMP_CXX_FLAGS}>)
+ else()
+   target_compile_options(faiss_avx512 PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/arch:AVX512>)
+   # we need bigobj for the swig wrapper
+@@ -297,27 +299,13 @@ endif()
+ target_compile_definitions(faiss_avx2 PRIVATE FINTEGER=int)
+ target_compile_definitions(faiss_avx512 PRIVATE FINTEGER=int)
+ 
+-find_package(OpenMP REQUIRED)
+-target_link_libraries(faiss PRIVATE OpenMP::OpenMP_CXX)
+-target_link_libraries(faiss_avx2 PRIVATE OpenMP::OpenMP_CXX)
+-target_link_libraries(faiss_avx512 PRIVATE OpenMP::OpenMP_CXX)
+ 
+-find_package(MKL)
+-if(MKL_FOUND)
+-  target_link_libraries(faiss PRIVATE ${MKL_LIBRARIES})
+-  target_link_libraries(faiss_avx2 PRIVATE ${MKL_LIBRARIES})
+-  target_link_libraries(faiss_avx512 PRIVATE ${MKL_LIBRARIES})
+-else()
+-  find_package(BLAS REQUIRED)
 -  target_link_libraries(faiss PRIVATE ${BLAS_LIBRARIES})
 -  target_link_libraries(faiss_avx2 PRIVATE ${BLAS_LIBRARIES})
-+  target_link_libraries(faiss PRIVATE BLAS::BLAS)
-+  target_link_libraries(faiss_avx2 PRIVATE BLAS::BLAS)
-   target_link_libraries(faiss_avx512 PRIVATE ${BLAS_LIBRARIES})
+-  target_link_libraries(faiss_avx512 PRIVATE ${BLAS_LIBRARIES})
++find_package(BLAS REQUIRED)
++find_package(LAPACK REQUIRED)
++target_link_libraries(faiss PRIVATE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${OpenMP_CXX_LIBRARIES} ${OpenMP_CXX_FLAGS})
++target_link_libraries(faiss_avx2 PRIVATE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${OpenMP_CXX_LIBRARIES} ${OpenMP_CXX_FLAGS})
++target_link_libraries(faiss_avx512 PRIVATE ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} ${OpenMP_CXX_LIBRARIES} ${OpenMP_CXX_FLAGS})
  
-   find_package(LAPACK REQUIRED)
+-  find_package(LAPACK REQUIRED)
 -  target_link_libraries(faiss PRIVATE ${LAPACK_LIBRARIES})
 -  target_link_libraries(faiss_avx2 PRIVATE ${LAPACK_LIBRARIES})
-+  target_link_libraries(faiss PRIVATE LAPACK::LAPACK)
-+  target_link_libraries(faiss_avx2 PRIVATE LAPACK::LAPACK)
-   target_link_libraries(faiss_avx512 PRIVATE ${LAPACK_LIBRARIES})
- endif()
+-  target_link_libraries(faiss_avx512 PRIVATE ${LAPACK_LIBRARIES})
+-endif()
  
-@@ -329,15 +329,19 @@ install(TARGETS faiss
+ install(TARGETS faiss
+   EXPORT faiss-targets
+@@ -329,15 +317,19 @@ install(TARGETS faiss
  if(FAISS_OPT_LEVEL STREQUAL "avx2")
    install(TARGETS faiss_avx2
      EXPORT faiss-targets
@@ -60,6 +98,74 @@ index 33e18495..83f5a8ef 100644
    )
  endif()
  
+diff --git a/faiss/invlists/InvertedListsIOHook.cpp b/faiss/invlists/InvertedListsIOHook.cpp
+index 0081c4f9..a1897a1f 100644
+--- a/faiss/invlists/InvertedListsIOHook.cpp
++++ b/faiss/invlists/InvertedListsIOHook.cpp
+@@ -14,9 +14,12 @@
+ #include <faiss/invlists/BlockInvertedLists.h>
+ 
+ #ifndef _MSC_VER
++#ifndef __MINGW64__
+ #include <faiss/invlists/OnDiskInvertedLists.h>
++#endif
+ #endif // !_MSC_VER
+ 
++
+ namespace faiss {
+ 
+ /**********************************************************
+@@ -34,7 +37,9 @@ namespace {
+ struct IOHookTable : std::vector<InvertedListsIOHook*> {
+     IOHookTable() {
+ #ifndef _MSC_VER
++#ifndef __MINGW64__
+         push_back(new OnDiskInvertedListsIOHook());
++#endif
+ #endif
+         push_back(new BlockInvertedListsIOHook());
+     }
+diff --git a/faiss/utils/AlignedTable.h b/faiss/utils/AlignedTable.h
+index 05adb1c0..542300f3 100644
+--- a/faiss/utils/AlignedTable.h
++++ b/faiss/utils/AlignedTable.h
+@@ -45,18 +45,25 @@ struct AlignedTableTightAlloc {
+         if (numel == n) {
+             return;
+         }
+-        T* new_ptr;
+-        if (n > 0) {
+-            int ret = posix_memalign((void**)&new_ptr, A, n * sizeof(T));
+-            if (ret != 0) {
+-                throw std::bad_alloc();
+-            }
+-            if (numel > 0) {
+-                memcpy(new_ptr, ptr, sizeof(T) * std::min(numel, n));
+-            }
+-        } else {
+-            new_ptr = nullptr;
++       T* new_ptr;
++if (n > 0) {
++    #ifdef _WIN32
++        new_ptr = (T*)_aligned_malloc(n * sizeof(T), A);
++        if (new_ptr == nullptr) {
++            throw std::bad_alloc();
+         }
++    #else
++        int ret = posix_memalign((void**)&new_ptr, A, n * sizeof(T));
++        if (ret != 0) {
++            throw std::bad_alloc();
++        }
++    #endif
++    if (numel > 0) {
++        memcpy(new_ptr, ptr, sizeof(T) * std::min(numel, n));
++    }
++} else {
++    new_ptr = nullptr;
++}
+         numel = n;
+         posix_memalign_free(ptr);
+         ptr = new_ptr;
 diff --git a/faiss/utils/distances_fused/simdlib_based.cpp b/faiss/utils/distances_fused/simdlib_based.cpp
 index 309fb721..be061ac2 100644
 --- a/faiss/utils/distances_fused/simdlib_based.cpp
@@ -73,3 +179,37 @@ index 309fb721..be061ac2 100644
          kernel<DIM, NX_POINTS_PER_LOOP, NY_POINTS_PER_LOOP>(
                  x, y, y_transposed.data(), ny, res, y_norms, i);
      }
+diff --git a/faiss/utils/distances_simd.cpp b/faiss/utils/distances_simd.cpp
+index 323859f4..2b6a009e 100644
+--- a/faiss/utils/distances_simd.cpp
++++ b/faiss/utils/distances_simd.cpp
+@@ -1939,10 +1939,10 @@ void fvec_madd(size_t n, const float* a, float bf, const float* b, float* c) {
+ #ifdef __AVX2__
+     fvec_madd_avx2(n, a, bf, b, c);
+ #else
+-    if ((n & 3) == 0 && ((((long)a) | ((long)b) | ((long)c)) & 15) == 0)
+-        fvec_madd_sse(n, a, bf, b, c);
+-    else
+-        fvec_madd_ref(n, a, bf, b, c);
++if ((n & 3) == 0 && ((((intptr_t)a) | ((intptr_t)b) | ((intptr_t)c)) & 15) == 0)
++    fvec_madd_sse(n, a, bf, b, c);
++else
++    fvec_madd_ref(n, a, bf, b, c);
+ #endif
+ }
+ 
+@@ -2049,10 +2049,10 @@ int fvec_madd_and_argmin(
+         float bf,
+         const float* b,
+         float* c) {
+-    if ((n & 3) == 0 && ((((long)a) | ((long)b) | ((long)c)) & 15) == 0)
+-        return fvec_madd_and_argmin_sse(n, a, bf, b, c);
+-    else
+-        return fvec_madd_and_argmin_ref(n, a, bf, b, c);
++  if ((n & 3) == 0 && ((((intptr_t)a) | ((intptr_t)b) | ((intptr_t)c)) & 15) == 0)
++    return fvec_madd_and_argmin_sse(n, a, bf, b, c);
++  else
++    return fvec_madd_and_argmin_ref(n, a, bf, b, c);
+ }
+ 
+ #elif defined(__aarch64__)
