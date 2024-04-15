@@ -1,7 +1,32 @@
+Subject: [PATCH] fix sqlite for vcpk unofficial package
+---
+Index: CMakeLists.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt	(revision a83fcebbbd6c90e951f503aaa39696103306ad59)
++++ b/CMakeLists.txt	(date 1713213220823)
+@@ -31,8 +31,8 @@
+
+ target_compile_features(zxorm_zxorm INTERFACE cxx_std_20)
+
+-find_package(SQLite3 REQUIRED)
+-target_link_libraries(zxorm_zxorm INTERFACE SQLite::SQLite3)
++find_package(unofficial-sqlite3 REQUIRED)
++target_link_libraries(zxorm_zxorm INTERFACE unofficial::sqlite3::sqlite3)
+
+ # ---- Install rules ----
+
+Index: cmake/install-rules.cmake
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
 diff --git a/cmake/install-rules.cmake b/cmake/install-rules.cmake
-index 8b1914a..8442e8c 100644
---- a/cmake/install-rules.cmake
-+++ b/cmake/install-rules.cmake
+--- a/cmake/install-rules.cmake	(revision a83fcebbbd6c90e951f503aaa39696103306ad59)
++++ b/cmake/install-rules.cmake	(date 1713213124055)
 @@ -1,6 +1,6 @@
  if(PROJECT_IS_TOP_LEVEL)
    set(
@@ -10,11 +35,28 @@ index 8b1914a..8442e8c 100644
        CACHE PATH ""
    )
  endif()
+Index: cmake/install-config.cmake
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/cmake/install-config.cmake b/cmake/install-config.cmake
+--- a/cmake/install-config.cmake	(revision a83fcebbbd6c90e951f503aaa39696103306ad59)
++++ b/cmake/install-config.cmake	(date 1713213220826)
+@@ -1,3 +1,3 @@
+ include(CMakeFindDependencyMacro)
+-find_dependency(SQLite3)
++find_dependency(unofficial-sqlite3)
+ include("${CMAKE_CURRENT_LIST_DIR}/zxormTargets.cmake")
+Index: include/zxorm/orm/expression.hpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
 diff --git a/include/zxorm/orm/expression.hpp b/include/zxorm/orm/expression.hpp
-index 857a230..5660d98 100644
---- a/include/zxorm/orm/expression.hpp
-+++ b/include/zxorm/orm/expression.hpp
-@@ -20,7 +20,7 @@ namespace zxorm {
+--- a/include/zxorm/orm/expression.hpp	(revision a83fcebbbd6c90e951f503aaa39696103306ad59)
++++ b/include/zxorm/orm/expression.hpp	(date 1713213124060)
+@@ -20,7 +20,7 @@
          NOT_LIKE,
          GLOB,
          NOT_GLOB,
@@ -22,8 +64,8 @@ index 857a230..5660d98 100644
 +        _IN,
          NOT_IN,
      };
- 
-@@ -56,7 +56,7 @@ namespace zxorm {
+
+@@ -56,7 +56,7 @@
              case comparison_op_t::NOT_GLOB:
                  out << " NOT GLOB ";
                  break;
@@ -32,7 +74,7 @@ index 857a230..5660d98 100644
                  out << " IN ";
                  break;
              case comparison_op_t::NOT_IN:
-@@ -140,7 +140,7 @@ namespace zxorm {
+@@ -140,7 +140,7 @@
          std::string serialize() const {
              std::stringstream ss;
              ss << "`" << Table::name.value << "`.`" << Column::name.value << "` " << op;
@@ -41,28 +83,36 @@ index 857a230..5660d98 100644
                  ss << " (";
                  for (size_t i = 0; i < to_bind.size(); i++) {
                      ss << "?,";
+Index: include/zxorm/orm/table.hpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/include/zxorm/orm/table.hpp b/include/zxorm/orm/table.hpp
+--- a/include/zxorm/orm/table.hpp	(revision a83fcebbbd6c90e951f503aaa39696103306ad59)
++++ b/include/zxorm/orm/table.hpp	(date 1713213124067)
+@@ -14,6 +14,7 @@
+ #include "zxorm/orm/column.hpp"
+ #include "zxorm/orm/field.hpp"
+ #include "zxorm/error.hpp"
++#include "zxorm/orm/statement.hpp"
+
+ namespace zxorm {
+     namespace __foreign_key_detail {
+Index: include/zxorm/orm/field.hpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
 diff --git a/include/zxorm/orm/field.hpp b/include/zxorm/orm/field.hpp
-index 8dd33ef..14d77d8 100644
---- a/include/zxorm/orm/field.hpp
-+++ b/include/zxorm/orm/field.hpp
-@@ -143,7 +143,7 @@ namespace zxorm {
- 
+--- a/include/zxorm/orm/field.hpp	(revision a83fcebbbd6c90e951f503aaa39696103306ad59)
++++ b/include/zxorm/orm/field.hpp	(date 1713213124064)
+@@ -143,7 +143,7 @@
+
          template <typename Container>
          requires(is_multi_value_binding<Container>::value)
 -        ColumnExpression<Table, column_t, comparison_op_t::IN, Container> in(Container value) {
 +        ColumnExpression<Table, column_t, comparison_op_t::_IN, Container> in(Container value) {
              return value;
          }
- 
-diff --git a/include/zxorm/orm/table.hpp b/include/zxorm/orm/table.hpp
-index 37e8bc8..c4769bf 100644
---- a/include/zxorm/orm/table.hpp
-+++ b/include/zxorm/orm/table.hpp
-@@ -14,6 +14,7 @@
- #include "zxorm/orm/column.hpp"
- #include "zxorm/orm/field.hpp"
- #include "zxorm/error.hpp"
-+#include "zxorm/orm/statement.hpp"
- 
- namespace zxorm {
-     namespace __foreign_key_detail {
+

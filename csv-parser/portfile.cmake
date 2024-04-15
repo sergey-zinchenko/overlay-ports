@@ -8,9 +8,14 @@ vcpkg_from_github(
         fix-packaging.patch
 )
 
+if (VCPKG_LIBRARY_LINKAGE STREQUAL "static")
+    list(APPEND ADDITIONAL_FLAGS "-DBUILD_SHARED_LIBS=ON")
+endif ()
 
 vcpkg_cmake_configure(
         SOURCE_PATH "${SOURCE_PATH}"
+        OPTIONS
+        ${ADDITIONAL_FLAGS}
 )
 
 vcpkg_cmake_install()

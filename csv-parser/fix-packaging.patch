@@ -1,4 +1,4 @@
-Subject: [PATCH] packaging changes for vcpkg
+Subject: [PATCH] packaging changes for vcpkg forgotten file
 ---
 Index: include/internal/CMakeLists.txt
 IDEA additional info:
@@ -7,9 +7,17 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 ===================================================================
 diff --git a/include/internal/CMakeLists.txt b/include/internal/CMakeLists.txt
 --- a/include/internal/CMakeLists.txt	(revision fdcafe3038944527d18be593306fa9d8c17e4f10)
-+++ b/include/internal/CMakeLists.txt	(date 1713207116347)
-@@ -1,27 +1,109 @@
- add_library(csv STATIC "")
++++ b/include/internal/CMakeLists.txt	(date 1713210991379)
+@@ -1,27 +1,116 @@
+-add_library(csv STATIC "")
++if (NOT BUILD_SHARED_LIBS)
++    add_library(csv STATIC "")
++else ()
++    add_library(csv SHARED "")
++    set_target_properties(csv PROPERTIES
++            POSITION_INDEPENDENT_CODE ON
++    )
++endif ()
 
  target_sources(csv
 -	PRIVATE
@@ -147,7 +155,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 ===================================================================
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 --- a/CMakeLists.txt	(revision fdcafe3038944527d18be593306fa9d8c17e4f10)
-+++ b/CMakeLists.txt	(date 1713200950581)
++++ b/CMakeLists.txt	(date 1713210344633)
 @@ -1,5 +1,11 @@
  cmake_minimum_required(VERSION 3.9)
 -project(csv)
@@ -161,6 +169,45 @@ diff --git a/CMakeLists.txt b/CMakeLists.txt
 
  if(CSV_CXX_STANDARD)
  	set(CMAKE_CXX_STANDARD ${CSV_CXX_STANDARD})
+@@ -7,6 +13,9 @@
+ 	set(CMAKE_CXX_STANDARD 17)
+ endif(CSV_CXX_STANDARD)
+
++option(BUILD_SHARED_LIBS "build shared libraries" OFF)
++option(CSV_DEVELOPER "for development purposes" OFF)
++
+ option(BUILD_PYTHON "Build Python Binding" OFF)
+
+ message("Building CSV library using C++${CMAKE_CXX_STANDARD}")
+@@ -40,11 +49,6 @@
+
+ include_directories(${CSV_INCLUDE_DIR})
+
+-## Load developer specific CMake settings
+-if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+-    SET(CSV_DEVELOPER TRUE)
+-endif()
+-
+ ## Main Library
+ add_subdirectory(${CSV_SOURCE_DIR})
+
+@@ -54,11 +58,12 @@
+     add_subdirectory(python)
+ endif()
+
+-## Executables
+-add_subdirectory("programs")
++## Developer settings
++if (CSV_DEVELOPER)
++
++    ## Executables
++    add_subdirectory("programs")
+
+-## Developer settings
+-if (CSV_DEVELOPER)
+     # Allow for performance profiling
+     if (MSVC)
+ 	    target_link_options(csv PUBLIC /PROFILE)
 Index: include/internal/csv.cmake.in
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
