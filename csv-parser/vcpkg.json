@@ -1,0 +1,17 @@
+{
+  "name": "csv-parser",
+  "version": "2.2.0",
+  "port-version": 1,
+  "description": "Vince's CSV Parser",
+  "homepage": "https://github.com/vincentlaucsb/csv-parser",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ]
+}

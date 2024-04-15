@@ -1,0 +1,177 @@
+Subject: [PATCH] packaging changes for vcpkg
+---
+Index: include/internal/CMakeLists.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/include/internal/CMakeLists.txt b/include/internal/CMakeLists.txt
+--- a/include/internal/CMakeLists.txt	(revision fdcafe3038944527d18be593306fa9d8c17e4f10)
++++ b/include/internal/CMakeLists.txt	(date 1713207116347)
+@@ -1,27 +1,109 @@
+ add_library(csv STATIC "")
+
+ target_sources(csv
+-	PRIVATE
+-		basic_csv_parser.hpp
+-		basic_csv_parser.cpp
+-		col_names.cpp
+-		col_names.hpp
+-		common.hpp
+-		csv_format.hpp
+-		csv_format.cpp
+-		csv_reader.hpp
+-		csv_reader.cpp
+-		csv_reader_iterator.cpp
+-		csv_row.hpp
+-		csv_row.cpp
+-		csv_row_json.cpp
+-		csv_stat.cpp
+-		csv_stat.hpp
+-		csv_utility.cpp
+-		csv_utility.hpp
+-		csv_writer.hpp
+-		data_type.h
+-		)
++        PRIVATE
++        basic_csv_parser.hpp
++        basic_csv_parser.cpp
++        col_names.cpp
++        col_names.hpp
++        common.hpp
++        csv_format.hpp
++        csv_format.cpp
++        csv_reader.hpp
++        csv_reader.cpp
++        csv_reader_iterator.cpp
++        csv_row.hpp
++        csv_row.cpp
++        csv_row_json.cpp
++        csv_stat.cpp
++        csv_stat.hpp
++        csv_utility.cpp
++        csv_utility.hpp
++        csv_writer.hpp
++        data_type.h
++)
+
+ set_target_properties(csv PROPERTIES LINKER_LANGUAGE CXX)
+ target_link_libraries(csv PRIVATE Threads::Threads)
++
++
++target_include_directories(
++        csv ${warning_guard}
++        INTERFACE
++        "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
++)
++
++target_compile_features(csv INTERFACE cxx_std_17)
++
++
++if (NOT CMAKE_SKIP_INSTALL_RULES)
++
++
++    include(CMakePackageConfigHelpers)
++
++    set_property(
++            TARGET csv PROPERTY
++            EXPORT_NAME csv-parser
++    )
++
++    # find_package(<package>) call for consumers to find this project
++    set(package csv-parser)
++
++    install(
++            TARGETS csv
++            EXPORT csv-parser-targets
++            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
++            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
++            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++            INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
++    )
++
++    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/csv.cmake.in
++            ${PROJECT_BINARY_DIR}/${package}Config.cmake
++            COPYONLY
++    )
++
++    configure_package_config_file(
++            ${CMAKE_CURRENT_SOURCE_DIR}/csv.cmake.in
++            ${CMAKE_CURRENT_BINARY_DIR}/${package}Config.cmake
++            INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${package}
++            PATH_VARS CMAKE_INSTALL_INCLUDEDIR
++            CMAKE_INSTALL_LIBDIR
++            CMAKE_INSTALL_BINDIR)
++
++    write_basic_package_version_file(
++            "${package}ConfigVersion.cmake"
++            VERSION ${CMAKE_PROJECT_VERSION}
++            COMPATIBILITY AnyNewerVersion
++    )
++
++    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${package}Config.cmake
++            ${CMAKE_CURRENT_BINARY_DIR}/${package}ConfigVersion.cmake
++            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${package})
++
++    install(EXPORT csv-parser-targets
++            DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${package}
++    )
++
++    file(GLOB_RECURSE HEADER_FILES "${PROJECT_SOURCE_DIR}/include/*.h" "${PROJECT_SOURCE_DIR}/include/*.hpp")
++    foreach (header ${HEADER_FILES})
++        file(RELATIVE_PATH RELATIVE_PATH ${CSV_INCLUDE_DIR} ${header})
++        get_filename_component(dir ${RELATIVE_PATH} DIRECTORY)
++        install(FILES ${header}
++                DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${package}/${dir}
++        )
++    endforeach ()
++
++    # Allow package maintainers to freely override the path for the configs
++    set(
++            csv_parser_INSTALL_CMAKEDIR "${CMAKE_INSTALL_DATADIR}/${package}"
++            CACHE PATH "CMake package config location relative to the install prefix"
++    )
++
++    mark_as_advanced(csv_parser_INSTALL_CMAKEDIR)
++
++    if (PROJECT_IS_TOP_LEVEL)
++        include(CPack)
++    endif ()
++
++endif ()
+\ No newline at end of file
+Index: CMakeLists.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt	(revision fdcafe3038944527d18be593306fa9d8c17e4f10)
++++ b/CMakeLists.txt	(date 1713200950581)
+@@ -1,5 +1,11 @@
+ cmake_minimum_required(VERSION 3.9)
+-project(csv)
++project(csv
++        VERSION 2.2.0
++        DESCRIPTION "Vince's CSV Parser"
++        HOMEPAGE_URL "https://github.com/vincentlaucsb/csv-parser"
++        LANGUAGES CXX C)
++include(GNUInstallDirs)
++
+
+ if(CSV_CXX_STANDARD)
+ 	set(CMAKE_CXX_STANDARD ${CSV_CXX_STANDARD})
+Index: include/internal/csv.cmake.in
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/include/internal/csv.cmake.in b/include/internal/csv.cmake.in
+new file mode 100644
+--- /dev/null	(date 1713201515823)
++++ b/include/internal/csv.cmake.in	(date 1713201515823)
+@@ -0,0 +1,3 @@
++include(CMakeFindDependencyMacro)
++find_dependency(Threads REQUIRED)
++include("${CMAKE_CURRENT_LIST_DIR}/csv-parser-targets.cmake")
+\ No newline at end of file
