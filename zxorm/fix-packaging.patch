@@ -7,18 +7,27 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 ===================================================================
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 --- a/CMakeLists.txt	(revision a83fcebbbd6c90e951f503aaa39696103306ad59)
-+++ b/CMakeLists.txt	(date 1713213220823)
++++ b/CMakeLists.txt	(date 1713214489235)
+@@ -7,7 +7,7 @@
+     VERSION 0.1.3
+     DESCRIPTION "Zach's SQLite ORM"
+     HOMEPAGE_URL "https://github.com/crabmandable/zxorm"
+-    LANGUAGES NONE
++    LANGUAGES CXX
+ )
+ 
+ include(cmake/project-is-top-level.cmake)
 @@ -31,8 +31,8 @@
-
+ 
  target_compile_features(zxorm_zxorm INTERFACE cxx_std_20)
-
+ 
 -find_package(SQLite3 REQUIRED)
 -target_link_libraries(zxorm_zxorm INTERFACE SQLite::SQLite3)
 +find_package(unofficial-sqlite3 REQUIRED)
 +target_link_libraries(zxorm_zxorm INTERFACE unofficial::sqlite3::sqlite3)
-
+ 
  # ---- Install rules ----
-
+ 
 Index: cmake/install-rules.cmake
 IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
@@ -64,7 +73,7 @@ diff --git a/include/zxorm/orm/expression.hpp b/include/zxorm/orm/expression.hpp
 +        _IN,
          NOT_IN,
      };
-
+ 
 @@ -56,7 +56,7 @@
              case comparison_op_t::NOT_GLOB:
                  out << " NOT GLOB ";
@@ -96,7 +105,7 @@ diff --git a/include/zxorm/orm/table.hpp b/include/zxorm/orm/table.hpp
  #include "zxorm/orm/field.hpp"
  #include "zxorm/error.hpp"
 +#include "zxorm/orm/statement.hpp"
-
+ 
  namespace zxorm {
      namespace __foreign_key_detail {
 Index: include/zxorm/orm/field.hpp
@@ -108,11 +117,11 @@ diff --git a/include/zxorm/orm/field.hpp b/include/zxorm/orm/field.hpp
 --- a/include/zxorm/orm/field.hpp	(revision a83fcebbbd6c90e951f503aaa39696103306ad59)
 +++ b/include/zxorm/orm/field.hpp	(date 1713213124064)
 @@ -143,7 +143,7 @@
-
+ 
          template <typename Container>
          requires(is_multi_value_binding<Container>::value)
 -        ColumnExpression<Table, column_t, comparison_op_t::IN, Container> in(Container value) {
 +        ColumnExpression<Table, column_t, comparison_op_t::_IN, Container> in(Container value) {
              return value;
          }
-
+ 
