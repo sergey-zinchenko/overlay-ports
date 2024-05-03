@@ -6,8 +6,8 @@
   "license": "MIT",
   "supports": "!uwp & !osx & !x86",
   "dependencies": [
+    "blas",
     "lapack",
-    "openblas",
     {
       "name": "vcpkg-cmake",
       "host": true
