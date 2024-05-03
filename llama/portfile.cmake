@@ -1,8 +1,8 @@
 vcpkg_from_github(OUT_SOURCE_PATH SOURCE_PATH
         REPO "ggerganov/llama.cpp"
-        REF b2589
+        REF b2783
         HEAD_REF master
-        SHA512 7708d1c1af7af95e5de9865fe82b4f325389fe78891e5160b2579baaabb3757fcd72378927d98b81b7cdd0f34c296588985dd45bb322570f39f0d3a13d006b71
+        SHA512 aef886f8c66ba0bb958f048e350deb65cf9587a105caa59c11089140e6f013e131f88df7d762273457275eb731448e32d7c79fb2dbe8b83509fc8cd92b0df164
         PATCHES
         fix-packaging.patch
 )

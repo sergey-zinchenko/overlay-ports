@@ -1,8 +1,8 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 19fdfa46..9feaefa9 100644
+index 477c5b57..3382cbca 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -1243,33 +1243,12 @@ set(GGML_PUBLIC_HEADERS "ggml.h" "ggml-alloc.h" "ggml-backend.h"
+@@ -1255,33 +1255,12 @@ set(GGML_PUBLIC_HEADERS "ggml.h" "ggml-alloc.h" "ggml-backend.h"
          "${GGML_HEADERS_METAL}" "${GGML_HEADERS_MPI}" "${GGML_HEADERS_EXTRA}")
  
  set_target_properties(ggml PROPERTIES PUBLIC_HEADER "${GGML_PUBLIC_HEADERS}")
@@ -41,10 +41,58 @@ index 19fdfa46..9feaefa9 100644
      install(
          FILES ggml-metal.metal
 diff --git a/common/CMakeLists.txt b/common/CMakeLists.txt
-index 1d840e5f..7848e7da 100644
+index 0ec8d6d8..26b1b2ea 100644
 --- a/common/CMakeLists.txt
 +++ b/common/CMakeLists.txt
-@@ -87,3 +87,19 @@ endif ()
+@@ -49,23 +49,30 @@ endif()
+ 
+ set(TARGET common)
+ 
+-add_library(${TARGET} STATIC
+-    base64.hpp
+-    common.h
+-    common.cpp
+-    sampling.h
+-    sampling.cpp
+-    console.h
+-    console.cpp
+-    grammar-parser.h
+-    grammar-parser.cpp
+-    json.hpp
+-    json-schema-to-grammar.cpp
+-    train.h
+-    train.cpp
+-    ngram-cache.h
+-    ngram-cache.cpp
+-    )
++if (BUILD_SHARED_LIBS)
++    add_library(${TARGET} SHARED "")
++else ()
++    add_library(${TARGET} STATIC "")
++endif ()
++
++target_sources(${TARGET}
++        PRIVATE
++        base64.hpp
++        common.h
++        common.cpp
++        sampling.h
++        sampling.cpp
++        console.h
++        console.cpp
++        grammar-parser.h
++        grammar-parser.cpp
++        json.hpp
++        json-schema-to-grammar.cpp
++        train.h
++        train.cpp
++        ngram-cache.h
++        ngram-cache.cpp
++)
+ 
+ if (BUILD_SHARED_LIBS)
+     set_target_properties(${TARGET} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+@@ -85,3 +92,19 @@ endif ()
  target_include_directories(${TARGET} PUBLIC .)
  target_compile_features(${TARGET} PUBLIC cxx_std_11)
  target_link_libraries(${TARGET} PRIVATE ${LLAMA_COMMON_EXTRA_LIBS} PUBLIC llama)
